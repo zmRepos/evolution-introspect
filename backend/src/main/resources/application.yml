@@ -1,0 +1,33 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/demo?allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+code:
+  generate:
+    # 数据库用户名
+    db-user-name: ${spring.datasource.username}
+    # 数据库密码
+    db-pwd: ${spring.datasource.password}
+    # 数据库连接URL
+    db-url: ${spring.datasource.url}
+    # 代码作者
+    author: ZhuMing
+    # 注释中的日期格式
+    comment-date-format: yyyy/MM/dd
+    # 代码生成目标路径
+    target-path: D://mbp-generate-codes
+    # 表前缀
+    table-prefix:
+      - t_
+      - pt_
+      # 包名
+    package-path: com.nju
+logging:
+  config: classpath:log4j2.xml
+  level:
+    cn.wnhyang.generator.mapper: debug
