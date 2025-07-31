@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org/">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码生成器</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        /* 容器布局 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        /* 主要内容区域 */
+        .main-content {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        /* 步骤指示器 */
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .steps-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e1e8ed;
+            z-index: 1;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e1e8ed;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            display: block;
+            font-size: 0.875rem;
+            color: #7f8c8d;
+        }
+
+        .step.active .step-number {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .step.active .step-title {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        /* 表单样式 */
+        .generator-form {
+            margin-top: 20px;
+        }
+
+        .form-section {
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-section.legend {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #2c3e50;
+            padding: 0 10px;
+            width: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #d1d8dd;
+            border-radius: 4px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.875rem;
+            color: #7f8c8d;
+        }
+
+        /* 错误信息 */
+        .error-container {
+            background-color: #fdf2f2;
+            border: 1px solid #fecaca;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .error-list {
+            list-style: none;
+        }
+
+        .error-item {
+            color: #dc2626;
+            padding: 5px 0;
+        }
+
+        /* 按钮样式 */
+        .form-actions {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 10px 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 4px;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .btn-primary:disabled {
+            background-color: #a0cfee;
+            border-color: #a0cfee;
+            cursor: not-allowed;
+        }
+
+        /* 步骤区域控制 */
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .steps-indicator {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .steps-indicator::before {
+                display: none;
+            }
+
+            .step {
+                display: flex;
+                align-items: center;
+                text-align: left;
+            }
+
+            .step-number {
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header class="page-header">
+        <h1 th:text="${data}">代码生成器</h1>
+    </header>
+
+    <main class="main-content">
+        <form id="generatorForm" class="generator-form" th:object="${dbConfig}">
+            <!-- 错误信息展示 -->
+            <div th:if="${#fields.hasErrors('*')}" class="error-container">
+                <ul class="error-list">
+                    <li th:each="error : ${#fields.errors('*')}" th:text="${error}" class="error-item"></li>
+                </ul>
+            </div>
+
+            <!-- 隐藏字段 -->
+            <input id="step" type="hidden" th:field="*{step}"/>
+
+            <!-- 步骤指示器 -->
+            <div class="steps-indicator">
+                <div th:class="${dbConfig.step >= 0 ? 'step active' : 'step'}" data-step="1">
+                    <span class="step-number">1</span>
+                    <span class="step-title">数据库连接</span>
+                </div>
+                <div th:class="${dbConfig.step >= 1 ? 'step active' : 'step'}" data-step="2">
+                    <span class="step-number">2</span>
+                    <span class="step-title">选择数据库</span>
+                </div>
+                <div th:class="${dbConfig.step >= 2 ? 'step active' : 'step'}" data-step="3">
+                    <span class="step-number">3</span>
+                    <span class="step-title">选择数据表</span>
+                </div>
+                <div th:class="${dbConfig.step >= 3 ? 'step active' : 'step'}" data-step="4">
+                    <span class="step-number">4</span>
+                    <span class="step-title">生成配置</span>
+                </div>
+            </div>
+
+            <!-- 步骤1: 数据库连接信息 -->
+            <fieldset class="form-section step-section" id="section-step1" data-step="0">
+                <legend>步骤1: 数据库连接信息</legend>
+
+                <div class="form-group">
+                    <label for="jdbcUrl">JDBC URL</label>
+                    <input id="jdbcUrl"
+                           th:field="*{jdbcUrl}"
+                           placeholder="请输入JDBC连接URL"
+                           class="form-control"
+                           required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="driverClassName">驱动类名</label>
+                        <input id="driverClassName"
+                               th:field="*{driverClassName}"
+                               placeholder="请输入驱动类名"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input id="username"
+                               th:field="*{username}"
+                               placeholder="请输入数据库用户名"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input id="password"
+                               th:field="*{password}"
+                               type="password"
+                               placeholder="请输入数据库密码"
+                               class="form-control"
+                               required>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 步骤2: 选择数据库 -->
+            <fieldset class="form-section step-section" id="section-step2" data-step="1">
+                <legend>步骤2: 选择数据库</legend>
+
+                <div class="form-group">
+                    <label for="database">数据库</label>
+                    <select id="database"
+                            th:field="*{database}"
+                            class="form-control">
+                        <option value="">请选择数据库</option>
+                        <option th:each="db : ${databases}"
+                                th:value="${db}"
+                                th:text="${db}"></option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <!-- 步骤3: 选择数据表 -->
+            <fieldset class="form-section step-section" id="section-step3" data-step="2">
+                <legend>步骤3: 选择数据表</legend>
+
+                <div class="form-group">
+                    <label for="tableNames">数据表</label>
+                    <select id="tableNames"
+                            multiple
+                            class="form-control">
+                        <option th:each="table : ${tablesInfos}"
+                                th:value="${table.name}"
+                                th:text="${table.comment}"></option>
+                    </select>
+                    <small class="form-text">按住 Ctrl 键可多选</small>
+                </div>
+            </fieldset>
+
+            <!-- 步骤4: 生成配置 -->
+            <fieldset class="form-section step-section" id="section-step4" data-step="3">
+                <legend>步骤4: 生成配置</legend>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tablePrefix">表前缀</label>
+                        <input id="tablePrefix"
+                               th:field="*{tablePrefix}"
+                               placeholder="表前缀（多个用逗号分隔）"
+                               class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parent">父包名</label>
+                        <input id="parent"
+                               th:field="*{parent}"
+                               placeholder="例如: com.example.project"
+                               class="form-control"
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="moduleName">模块名</label>
+                        <input id="moduleName"
+                               th:field="*{moduleName}"
+                               placeholder="例如: user"
+                               class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="author">作者</label>
+                        <input id="author"
+                               th:field="*{author}"
+                               placeholder="代码作者"
+                               class="form-control"
+                               required>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 提交按钮 -->
+            <div class="form-actions">
+                <button id="submitButton" type="submit" class="btn btn-primary">
+                    <span id="buttonText">测试连接</span>
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<!-- 使用CDN引入jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(function() {
+        const form = $('#generatorForm');
+        const stepInput = $('#step');
+        const submitButton = $('#submitButton');
+        const buttonText = $('#buttonText');
+
+        // 更新步骤值
+        function updateStep(step) {
+            stepInput.val(step);
+            // 同时更新Thymeleaf绑定的隐藏字段
+            $('input[name="step"]').val(step);
+        }
+
+        // 选项模板
+        const optionTemplate = (value, text) => {
+            debugger
+            return `<option value="${value}">${value}:${text}</option>`
+        };
+
+        // 更新数据库选项
+        function updateDatabaseOptions(databases) {
+            $('#database')
+                .empty()
+                .append('<option value="">请选择数据库</option>')
+                .append(databases.map(db => optionTemplate(db, db)));
+        }
+
+        // 更新表选项
+        function updateTableOptions(tableInfos) {
+            $('#tableNames')
+                .empty()
+                .append(tableInfos.map(table => optionTemplate(table.name, table.comment || table.name)));
+        }
+
+        // 更新表单数据
+        function updateFormData(data) {
+            // 更新各个字段的值
+            if (data.jdbcUrl) $('#jdbcUrl').val(data.jdbcUrl);
+            if (data.driverClassName) $('#driverClassName').val(data.driverClassName);
+            if (data.username) $('#username').val(data.username);
+            if (data.password) $('#password').val(data.password);
+            if (data.database) $('#database').val(data.database);
+            if (data.tablePrefix) $('#tablePrefix').val(data.tablePrefix);
+            if (data.parent) $('#parent').val(data.parent);
+            if (data.moduleName) $('#moduleName').val(data.moduleName);
+            if (data.author) $('#author').val(data.author);
+        }
+
+        // 更新按钮文本
+        function updateButtonText(step) {
+            switch(step) {
+                case 0:
+                    buttonText.text('测试连接');
+                    break;
+                case 1:
+                    buttonText.text('查询该数据库的表');
+                    break;
+                case 2:
+                    buttonText.text('确认生成配置');
+                    break;
+                default:
+                    buttonText.text('生成代码');
+            }
+        }
+
+        // 根据步骤更新UI
+        function updateUI(step) {
+            // 更新步骤指示器
+            $('.step').removeClass('active');
+            $('.step').each(function() {
+                const stepNumber = parseInt($(this).data('step'));
+                if (stepNumber <= step + 1) {
+                    $(this).addClass('active');
+                }
+            });
+
+            // 更新表单步骤区域显示
+            $('.step-section').removeClass('active');
+            $(`.step-section[data-step="${step}"]`).addClass('active');
+
+            // 更新按钮文本
+            updateButtonText(step);
+        }
+
+        // 表单提交处理
+        form.submit(function(e) {
+            e.preventDefault();
+
+            const step = parseInt(stepInput.val(), 10);
+            // 第二步时，不请求接口了，直接进入下一步
+            if (step == 2) {
+                // 更新步骤
+                updateStep(step + 1);
+                updateUI(step + 1);
+                return;
+            }
+            const formDataObj = {
+                ...serializeFormData(form),
+                tableNames: $('#tableNames').val() || []
+            };
+
+            const formDataJson = JSON.stringify(formDataObj);
+
+            let apiUrl;
+            switch (step) {
+                case 0:
+                    apiUrl = '/api/databases';
+                    break;
+                case 1:
+                    apiUrl = '/api/tables';
+                    break;
+                default:
+                    apiUrl = '/api/generate';
+            }
+
+            // 保存原始按钮文本
+            const originalButtonText = buttonText.text();
+
+            // 禁用提交按钮并显示加载状态
+            submitButton.prop('disabled', true);
+            buttonText.text('处理中...');
+
+            $.ajax({
+                url: apiUrl,
+                type: "POST",
+                contentType: "application/json",
+                headers: {
+                    'Cache-Control': 'no-cache'
+                },
+                data: formDataJson,
+                success: function(response) {
+                    if (response.code === 0) {
+                        const data = response.data;
+
+                        // 更新步骤
+                        updateStep(data.step);
+                        updateUI(data.step);
+
+                        // 更新表单数据
+                        updateFormData(data);
+
+                        switch (data.step) {
+                            case 1:
+                                updateDatabaseOptions(data.databases);
+                                showMessage('数据库连接成功！请选择数据库。', 'success');
+                                break;
+                            case 2:
+                                updateTableOptions(data.tableInfos);
+                                showMessage('数据库表获取成功！请选择需要生成代码的数据表。', 'success');
+                                break;
+                            default:
+                                showMessage('代码生成成功！', 'success');
+                        }
+                    } else {
+                        showMessage(response.msg || '操作失败，请重试。', 'error');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    showMessage('请求失败: ' + textStatus, 'error');
+                    console.error('Ajax request failed:', textStatus, ':', errorThrown);
+                },
+                complete: function() {
+                    // 重新启用提交按钮并恢复原始文本
+                    submitButton.prop('disabled', false);
+                }
+            });
+        });
+
+        // 消息提示函数
+        function showMessage(message, type) {
+            // 简单的消息提示实现
+            alert(message);
+        }
+
+        // 序列化表单数据为对象
+        function serializeFormData(form) {
+            const formDataObj = {};
+            form.serializeArray().forEach(item => {
+                // 处理多选框的情况
+                if (formDataObj[item.name]) {
+                    if (!Array.isArray(formDataObj[item.name])) {
+                        formDataObj[item.name] = [formDataObj[item.name]];
+                    }
+                    formDataObj[item.name].push(item.value);
+                } else {
+                    formDataObj[item.name] = item.value;
+                }
+            });
+            return formDataObj;
+        }
+
+        // 初始化UI
+        updateUI(parseInt(stepInput.val(), 10));
+    });
+</script>
+</body>
+</html>

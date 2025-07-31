@@ -1,0 +1,110 @@
+package ${package.Controller};
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+
+/**
+ * $!{table.comment}
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Tag(name = "${table.comment}")
+@Slf4j
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+
+    @Resource
+    private ${entity}Service ${table.entityPath}Service;
+
+    /**
+     * 新增
+     *
+     * @param bo 业务实体
+     * @return id
+     */
+    @PostMapping
+    @Operation(summary = "01-新增")
+    public String add(@Validated @RequestBody ${entity}BO bo) {
+        return ${table.entityPath}Service.create(bo);
+    }
+
+    /**
+     * 更新
+     *
+     * @param bo 业务实体
+     * @return true/false
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "02-修改")
+    public Boolean update(@PathVariable("id") String id,
+                          @Validated @RequestBody ${entity}BO bo) {
+        return ${table.entityPath}Service.update(id, bo);
+    }
+
+    /**
+     * 删除
+     *
+     * @param id id
+     * @return true/false
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "03-删除")
+    public Boolean delete(@PathVariable("id") String id) {
+        return ${table.entityPath}Service.delete(id);
+    }
+
+    /**
+     * 查询单个
+     *
+     * @param id id
+     * @return vo
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "04-详情")
+    public ${entity}VO get(@PathVariable("id") String id) {
+        return ${table.entityPath}Service.get(id);
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param bo 查询参数
+     * @param pageInfo 分页
+     * @return IPage
+     */
+    @GetMapping("/page")
+    @Operation(summary = "05-分页")
+    public IPage<${entity}SimpleVO> page(${entity}SearchBO bo, Page<${entity}> pageInfo) {
+        return ${table.entityPath}Service.page(bo, pageInfo);
+    }
+}
+#end

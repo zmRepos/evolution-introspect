@@ -1,0 +1,110 @@
+package ${cfg.convert};
+
+#foreach($pkg in ${table.importPackages})
+import ${pkg};
+#end
+#if(${springdoc})
+import io.swagger.v3.oas.annotations.media.Schema;
+#elseif(${swagger})
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+#end
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+/**
+ * $!{table.comment}
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${springdoc})
+@Schema(name = "${entity}", description = "$!{table.comment}")
+#elseif(${swagger})
+@ApiModel(value = "${entity}对象", description = "$!{table.comment}")
+#end
+@Mapper
+public interface ${entity}Convert {
+
+    ${entity}Convert INSTANCE = Mappers.getMapper(${entity}Convert.class);
+
+    /**
+     * 将业务对象转换为实体对象
+     *
+     * @param bo 业务对象
+     * @return 实体对象
+     */
+     ${entity} bo2Entity(${entity}BO bo);
+
+    /**
+     * 将业务对象列表转换为实体对象列表
+     *
+     * @param boList 业务对象列表
+     * @return 实体对象列表
+     */
+    List<${entity}> bo2Entity(List<${entity}BO> boList);
+
+    /**
+     * 将数据传输对象转换为实体对象
+     *
+     * @param dto 数据传输对象
+     * @return 实体对象
+     */
+     ${entity} dto2Entity(${entity}DTO dto);
+
+    /**
+     * 将数据传输对象列表转换为实体对象列表
+     *
+     * @param dtoList 数据传输对象列表
+     * @return 实体对象列表
+     */
+    List<${entity}> dto2Entity(List<${entity}DTO> dtoList);
+
+    /**
+     * 将实体对象转换为业务对象
+     *
+     * @param entity 实体对象
+     * @return 业务对象
+     */
+     ${entity}BO entity2Bo(${entity} entity);
+
+    /**
+     * 将实体对象列表转换为业务对象列表
+     *
+     * @param entityList 实体对象列表
+     * @return 业务对象列表
+     */
+    List<${entity}BO> entity2Bo(List<${entity}> entityList);
+
+    /**
+     * 将实体对象转换为数据传输对象
+     *
+     * @param entity 实体对象
+     * @return 数据传输对象
+     */
+     ${entity}DTO entity2Dto(${entity} entity);
+
+    /**
+     * 将实体对象列表转换为数据传输对象列表
+     *
+     * @param entityList 实体对象列表
+     * @return 数据传输对象列表
+     */
+    List<${entity}DTO> entity2Dto(List<${entity}> entityList);
+
+    /**
+     * 将实体对象转换为视图对象
+     *
+     * @param entity 实体对象
+     * @return 视图对象
+     */
+     ${entity}VO entity2Vo(${entity} entity);
+
+    /**
+     * 将实体对象列表转换为视图对象列表
+     *
+     * @param entityList 实体对象列表
+     * @return 视图对象列表
+     */
+    List<${entity}VO> entity2Vo(List<${entity}> entityList);
+}

@@ -1,0 +1,32 @@
+package ${package.Mapper};
+
+import ${package.Entity}.${entity};
+import ${superMapperClassPackage};
+#if(${mapperAnnotationClass})
+import ${mapperAnnotationClass.name};
+import org.apache.ibatis.annotations.Param;
+#end
+
+/**
+ * $!{table.comment} Mapper 接口
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${mapperAnnotationClass})
+@${mapperAnnotationClass.simpleName}
+#end
+#if(${kotlin})
+interface ${table.mapperName} : ${superMapperClass}<${entity}>
+#else
+public interface ${table.mapperName} extends ${superMapperClass}<${entity}> {
+    /**
+     * 分页查询 ${table.comment} 列表
+     *
+     * @param bo       查询条件
+     * @param pageInfo 分页信息
+     * @return 分页结果
+     */
+    IPage<${entity}SimpleVO> selectPage(@Param("search") ${entity}SearchBO bo, Page<${entity}> pageInfo);
+}
+#end

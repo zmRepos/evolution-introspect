@@ -1,0 +1,52 @@
+package ${package.Service};
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+/**
+ * $!{table.comment} 服务类
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+public interface ${table.serviceName} {
+
+    /**
+     * 新建
+     *
+     * @param bo 新增业务对象
+     * @return id
+     */
+    String create(${entity}BO bo);
+
+    /**
+     * 更新
+     *
+     * @param bo 更新VO
+     * @return 成功与否
+     */
+    boolean update(String id, ${entity}BO bo);
+
+    /**
+     * 删除
+     *
+     * @param id id
+     */
+    boolean delete(String id);
+
+    /**
+     * 查询单个
+     *
+     * @param id id
+     * @return vo
+     */
+    ${entity}VO get(String id);
+
+    /**
+     * 分页查询
+     *
+     * @param bo 搜索bo
+     * @param pageInfo 分页信息
+     * @return IPage<${entity}VO>
+     */
+    IPage<${entity}SimpleVO> page(${entity}SearchBO bo, Page<${entity}> pageInfo);
+}
